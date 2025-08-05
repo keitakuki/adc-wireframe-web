@@ -34,7 +34,16 @@ export function createRenderer() {
 // コントロール作成
 export function createControls(camera, domElement) {
   const controls = new OrbitControls(camera, domElement);
-  controls.enableDamping = true;
+  
+  // 慣性を無効化
+  controls.enableDamping = false;
+  controls.dampingFactor = 0;
+  
+  // その他の設定
+  controls.enableZoom = true;
+  controls.enablePan = true;
+  controls.enableRotate = true;
+  
   return controls;
 }
 

@@ -8,8 +8,6 @@ import { initializeUI, setupResizeHandler, updateCameraParameters, syncCameraPar
 // グローバル変数
 let scene, camera, renderer, controls, group;
 let glWrap;
-let lastCameraPosition = new THREE.Vector3();
-let lastFrustumSize = 0;
 
 // 初期化関数
 function init() {
@@ -35,26 +33,27 @@ function init() {
   // カメラ座標パラメータの初期化
   updateCameraParameters(camera, controls);
 
+  // OrbitControlsの変更イベントを設定
+  setupControlsEvents();
+
   // アニメーションループ開始
   tick();
 }
 
+// OrbitControlsの変更イベントを設定
+function setupControlsEvents() {
+  // カメラが変更された時にパラメータを更新
+  controls.addEventListener('change', () => {
+    syncCameraParameters();
+  });
+}
+
 // アニメーションループ
 function tick() {
-  controls.update();
+  // controls.update()を削除（慣性を無効化）
   renderer.render(scene, camera);
   
-  // カメラ座標が変更された時のみパラメータを更新
-  const currentPosition = camera.position.clone();
-  const currentFrustumSize = camera.top * 2;
-  
-  if (!lastCameraPosition.equals(currentPosition) || Math.abs(lastFrustumSize - currentFrustumSize) > 0.01) {
-    syncCameraParameters();
-    lastCameraPosition.copy(currentPosition);
-    lastFrustumSize = currentFrustumSize;
-  }
-  
-  // SVGプレビューは削除（パフォーマンス向上のため）
+  // パラメータの連続更新は停止
   
   requestAnimationFrame(tick);
 }

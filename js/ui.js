@@ -7,6 +7,7 @@ let cameraXSlider, cameraYSlider, cameraZSlider;
 let cameraXValue, cameraYValue, cameraZValue;
 let frustumSizeInput, frustumSizeSlider, frustumSizeValue;
 let camera, controls;
+let isInputting = false; // 入力中フラグ
 
 // UI初期化
 export function initializeUI(generateSVGFunc) {
@@ -54,10 +55,71 @@ export function initializeUI(generateSVGFunc) {
 // カメラ座標パラメータのハンドラー設定
 function setupCameraParameterHandlers() {
   // 数値入力のイベント
-  cameraXInput.addEventListener('input', updateCameraPosition);
-  cameraYInput.addEventListener('input', updateCameraPosition);
-  cameraZInput.addEventListener('input', updateCameraPosition);
-  frustumSizeInput.addEventListener('input', updateFrustumSize);
+  cameraXInput.addEventListener('focus', () => { isInputting = true; });
+  cameraYInput.addEventListener('focus', () => { isInputting = true; });
+  cameraZInput.addEventListener('focus', () => { isInputting = true; });
+  frustumSizeInput.addEventListener('focus', () => { isInputting = true; });
+  
+  // inputイベントで即座に反映（上下ボタン用）
+  cameraXInput.addEventListener('input', () => {
+    if (isInputting) {
+      updateCameraPosition();
+    }
+  });
+  cameraYInput.addEventListener('input', () => {
+    if (isInputting) {
+      updateCameraPosition();
+    }
+  });
+  cameraZInput.addEventListener('input', () => {
+    if (isInputting) {
+      updateCameraPosition();
+    }
+  });
+  frustumSizeInput.addEventListener('input', () => {
+    if (isInputting) {
+      updateFrustumSize();
+    }
+  });
+  
+  cameraXInput.addEventListener('blur', () => { 
+    isInputting = false; 
+    updateCameraPosition();
+  });
+  cameraYInput.addEventListener('blur', () => { 
+    isInputting = false; 
+    updateCameraPosition();
+  });
+  cameraZInput.addEventListener('blur', () => { 
+    isInputting = false; 
+    updateCameraPosition();
+  });
+  frustumSizeInput.addEventListener('blur', () => { 
+    isInputting = false; 
+    updateFrustumSize();
+  });
+  
+  // Enterキーで確定
+  cameraXInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      cameraXInput.blur();
+    }
+  });
+  cameraYInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      cameraYInput.blur();
+    }
+  });
+  cameraZInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      cameraZInput.blur();
+    }
+  });
+  frustumSizeInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      frustumSizeInput.blur();
+    }
+  });
   
   // スライダーのイベント
   cameraXSlider.addEventListener('input', updateCameraPositionFromSlider);
@@ -140,8 +202,13 @@ function updateFrustumSizeFromSlider(event) {
 
 // カメラのフラスタムを更新
 function updateCameraFrustum(frustumSize) {
-  const aspect = camera.right / camera.top;
+  // 現在のアスペクト比を取得
+  const panelElement = document.querySelector('.panel');
+  const panelWidth = panelElement.clientWidth - 20;
+  const panelHeight = 420;
+  const aspect = panelWidth / panelHeight;
   
+  // フラスタムサイズを直接設定
   camera.left = (-frustumSize * aspect) / 2;
   camera.right = (frustumSize * aspect) / 2;
   camera.top = frustumSize / 2;
@@ -156,7 +223,7 @@ function updateSliderAndValue(axis, value) {
   
   if (slider && valueDisplay) {
     slider.value = value;
-    valueDisplay.textContent = value.toFixed(4);
+    valueDisplay.textContent = value.toFixed(2);
   }
 }
 
@@ -167,7 +234,7 @@ function updateInputAndValue(axis, value) {
   
   if (input && valueDisplay) {
     input.value = value;
-    valueDisplay.textContent = value.toFixed(4);
+    valueDisplay.textContent = value.toFixed(2);
   }
 }
 
@@ -182,7 +249,7 @@ export function updateCameraParameters(cameraInstance, controlsInstance) {
     return;
   }
   
-  // 初期値を設定（小数点4位まで）
+  // 初期値を設定（小数点2桁まで）
   const x = camera.position.x;
   const y = camera.position.y;
   const z = camera.position.z;
@@ -201,7 +268,7 @@ export function updateCameraParameters(cameraInstance, controlsInstance) {
 
 // カメラ座標をパラメータに同期（OrbitControls使用時）
 export function syncCameraParameters() {
-  if (!camera || !cameraXInput || !cameraYInput || !cameraZInput) return;
+  if (!camera || !cameraXInput || !cameraYInput || !cameraZInput || isInputting) return;
   
   const x = camera.position.x;
   const y = camera.position.y;
