@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wireframe → SVG (Ortho, Minimal)</title>
+<style>
+  html, body { height: 100%; margin: 0; background:#fff; font-family: system-ui, sans-serif; }
+  #wrap { max-width: 960px; margin: 24px auto; padding: 12px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .panel { border: 1px solid #ddd; border-radius: 10px; padding: 10px; }
+  #gl, #svg { height: 420px; background:#fff; }
+  button { padding: 8px 12px; border:1px solid #ccc; border-radius:8px; background:#fff; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <h1 style="font-size:18px; margin:0;">Wireframe → SVG (Ortho, Minimal)</h1>
+    <button id="saveBtn">Save SVG</button>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div>WebGL (操作用)</div>
+      <div id="gl"></div>
+    </div>
+    <div class="panel">
+      <div>SVG プレビュー（ベクター）</div>
+      <div id="svg"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.160.0?module';
+  import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js?module';
+  import { SVGRenderer } from 'https://unpkg.com/three@0.160.0/examples/jsm/renderers/SVGRenderer.js?module';
+
+  const glWrap  = document.getElementById('gl');
+  const svgWrap = document.getElementById('svg');
+
+  // --- scene & camera (orthographic) ---
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff);
+
+  const frustumSize = 12;
+  const aspect = 1; // 初期値（リサイズ時に更新）
+  const camera = new THREE.OrthographicCamera(
+    (-frustumSize * aspect) / 2,
+    ( frustumSize * aspect) / 2,
+     frustumSize / 2,
+    -frustumSize / 2,
+    -100, 1000
+  );
+  camera.position.set(10,10,10);
+  camera.lookAt(0,0,0);
+
+  // --- geometry: 1辺=1オブジェクト（編集しやすいSVG） ---
+  function makeBoxEdges(size=1){
+    const h=size/2;
+    const V=[
+      new THREE.Vector3(-h,-h,-h), new THREE.Vector3( h,-h,-h),
+      new THREE.Vector3(-h, h,-h), new THREE.Vector3( h, h,-h),
+      new THREE.Vector3(-h,-h, h), new THREE.Vector3( h,-h, h),
+      new THREE.Vector3(-h, h, h), new THREE.Vector3( h, h, h),
+    ];
+    const E=[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[1,5],[2,6],[3,7]];
+    const g=new THREE.Group();
+    const mat=new THREE.LineBasicMaterial({color:0x000000});
+    for(const [a,b] of E){
+      const geom=new THREE.BufferGeometry().setFromPoints([V[a].clone(), V[b].clone()]);
+      g.add(new THREE.Line(geom, mat));
+    }
+    return g;
+  }
+  const group=new THREE.Group();
+  const steps=10;
+  for(let i=0;i<steps;i++){
+    const box=makeBoxEdges(1);
+    box.position.set(i*1.2, i*0.7, 0);
+    group.add(box);
+  }
+  scene.add(group);
+
+  // --- renderers ---
+  const glRenderer = new THREE.WebGLRenderer({antialias:true});
+  glRenderer.setPixelRatio(window.devicePixelRatio);
+  glWrap.appendChild(glRenderer.domElement);
+
+  const svgRenderer = new SVGRenderer({antialias:true});
+  svgRenderer.domElement.style.background = '#ffffff';
+  svgWrap.appendChild(svgRenderer.domElement);
+
+  // --- controls ---
+  const controls = new OrbitControls(camera, glRenderer.domElement);
+  controls.enableDamping = true;
+
+  // --- resize ---
+  function resize(){
+    const gw = glWrap.clientWidth || 1;
+    const gh = glWrap.clientHeight || 1;
+    const a = gw/gh;
+    camera.left = (-frustumSize*a)/2;
+    camera.right= ( frustumSize*a)/2;
+    camera.top  =  frustumSize/2;
+    camera.bottom= -frustumSize/2;
+    camera.updateProjectionMatrix();
+    glRenderer.setSize(gw, gh);
+
+    const sw = svgWrap.clientWidth || 1;
+    const sh = svgWrap.clientHeight || 1;
+    svgRenderer.setSize(sw, sh);
+  }
+  new ResizeObserver(resize).observe(glWrap);
+  new ResizeObserver(resize).observe(svgWrap);
+  resize();
+
+  // --- loop ---
+  function tick(){
+    controls.update();
+    glRenderer.render(scene, camera);
+    svgRenderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  // --- save svg ---
+  document.getElementById('saveBtn').onclick = ()=>{
+    const svgEl = svgRenderer.domElement;
+    const data = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([data], {type:'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), {href:url, download:'wireframe.svg'});
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 500);
+  };
+</script>
+</body>
+</html>
