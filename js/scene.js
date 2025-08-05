@@ -39,8 +39,8 @@ export function createControls(camera, domElement) {
   controls.enableDamping = false;
   controls.dampingFactor = 0;
   
-  // その他の設定
-  controls.enableZoom = true;
+  // ズーム機能を無効化（パラメータでのみ制御）
+  controls.enableZoom = false;
   controls.enablePan = true;
   controls.enableRotate = true;
   
@@ -49,12 +49,13 @@ export function createControls(camera, domElement) {
 
 // カメラのアスペクト比を更新
 export function updateCameraAspect(camera, width, height) {
-  const frustumSize = 12;
+  // 現在のフラスタムサイズを保持
+  const currentFrustumSize = camera.top * 2;
   const aspect = width / height;
   
-  camera.left = (-frustumSize * aspect) / 2;
-  camera.right = (frustumSize * aspect) / 2;
-  camera.top = frustumSize / 2;
-  camera.bottom = -frustumSize / 2;
+  camera.left = (-currentFrustumSize * aspect) / 2;
+  camera.right = (currentFrustumSize * aspect) / 2;
+  camera.top = currentFrustumSize / 2;
+  camera.bottom = -currentFrustumSize / 2;
   camera.updateProjectionMatrix();
 } 

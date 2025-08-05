@@ -62,21 +62,25 @@ function setupCameraParameterHandlers() {
   
   // inputイベントで即座に反映（上下ボタン用）
   cameraXInput.addEventListener('input', () => {
+    console.log('X input:', cameraXInput.value);
     if (isInputting) {
       updateCameraPosition();
     }
   });
   cameraYInput.addEventListener('input', () => {
+    console.log('Y input:', cameraYInput.value);
     if (isInputting) {
       updateCameraPosition();
     }
   });
   cameraZInput.addEventListener('input', () => {
+    console.log('Z input:', cameraZInput.value);
     if (isInputting) {
       updateCameraPosition();
     }
   });
   frustumSizeInput.addEventListener('input', () => {
+    console.log('Frustum input:', frustumSizeInput.value);
     if (isInputting) {
       updateFrustumSize();
     }
@@ -136,10 +140,15 @@ function updateCameraPosition() {
   const y = parseFloat(cameraYInput.value) || 0;
   const z = parseFloat(cameraZInput.value) || 0;
   
+  console.log('updateCameraPosition:', { x, y, z });
+  
   // スライダーと値表示を更新
   updateSliderAndValue('X', x);
   updateSliderAndValue('Y', y);
   updateSliderAndValue('Z', z);
+  updateValueDisplay('X', x);
+  updateValueDisplay('Y', y);
+  updateValueDisplay('Z', z);
   
   camera.position.set(x, y, z);
   camera.lookAt(0, 0, 0);
@@ -156,6 +165,8 @@ function updateCameraPositionFromSlider(event) {
   
   const axis = event.target.id.replace('camera', '').replace('Slider', '');
   const value = parseFloat(event.target.value);
+  
+  console.log('Slider update:', axis, value);
   
   // 数値入力と値表示を更新
   updateInputAndValue(axis, value);
@@ -180,8 +191,11 @@ function updateFrustumSize() {
   
   const frustumSize = parseFloat(frustumSizeInput.value) || 12;
   
+  console.log('updateFrustumSize:', frustumSize);
+  
   // スライダーと値表示を更新
   updateSliderAndValue('FrustumSize', frustumSize);
+  updateValueDisplay('FrustumSize', frustumSize);
   
   // カメラのフラスタムサイズを更新
   updateCameraFrustum(frustumSize);
@@ -192,6 +206,8 @@ function updateFrustumSizeFromSlider(event) {
   if (!camera) return;
   
   const value = parseFloat(event.target.value);
+  
+  console.log('Frustum slider update:', value);
   
   // 数値入力と値表示を更新
   updateInputAndValue('FrustumSize', value);
@@ -207,6 +223,8 @@ function updateCameraFrustum(frustumSize) {
   const panelWidth = panelElement.clientWidth - 20;
   const panelHeight = 420;
   const aspect = panelWidth / panelHeight;
+  
+  console.log('updateCameraFrustum:', { frustumSize, aspect });
   
   // フラスタムサイズを直接設定
   camera.left = (-frustumSize * aspect) / 2;
@@ -224,6 +242,7 @@ function updateSliderAndValue(axis, value) {
   if (slider && valueDisplay) {
     slider.value = value;
     valueDisplay.textContent = value.toFixed(2);
+    console.log(`updateSliderAndValue ${axis}:`, value);
   }
 }
 
@@ -235,6 +254,17 @@ function updateInputAndValue(axis, value) {
   if (input && valueDisplay) {
     input.value = value;
     valueDisplay.textContent = value.toFixed(2);
+    console.log(`updateInputAndValue ${axis}:`, value);
+  }
+}
+
+// 値表示のみを更新
+function updateValueDisplay(axis, value) {
+  const valueDisplay = document.getElementById(`camera${axis}Value`);
+  
+  if (valueDisplay) {
+    valueDisplay.textContent = value.toFixed(2);
+    console.log(`updateValueDisplay ${axis}:`, value);
   }
 }
 
@@ -255,6 +285,8 @@ export function updateCameraParameters(cameraInstance, controlsInstance) {
   const z = camera.position.z;
   const frustumSize = camera.top * 2; // フラスタムサイズを計算
   
+  console.log('updateCameraParameters:', { x, y, z, frustumSize });
+  
   cameraXInput.value = x;
   cameraYInput.value = y;
   cameraZInput.value = z;
@@ -264,6 +296,10 @@ export function updateCameraParameters(cameraInstance, controlsInstance) {
   updateSliderAndValue('Y', y);
   updateSliderAndValue('Z', z);
   updateSliderAndValue('FrustumSize', frustumSize);
+  updateValueDisplay('X', x);
+  updateValueDisplay('Y', y);
+  updateValueDisplay('Z', z);
+  updateValueDisplay('FrustumSize', frustumSize);
 }
 
 // カメラ座標をパラメータに同期（OrbitControls使用時）
@@ -284,6 +320,10 @@ export function syncCameraParameters() {
   updateSliderAndValue('Y', y);
   updateSliderAndValue('Z', z);
   updateSliderAndValue('FrustumSize', frustumSize);
+  updateValueDisplay('X', x);
+  updateValueDisplay('Y', y);
+  updateValueDisplay('Z', z);
+  updateValueDisplay('FrustumSize', frustumSize);
 }
 
 // リサイズハンドラー設定
