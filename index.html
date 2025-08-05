@@ -8,9 +8,8 @@
   html, body { height: 100%; margin: 0; background:#fff; font-family: system-ui, sans-serif; }
   #wrap { max-width: 960px; margin: 24px auto; padding: 12px; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .panel { border: 1px solid #ddd; border-radius: 10px; padding: 10px; width: 100%; }
-  #gl, #svg { height: 420px; background:#fff; width: 100%; box-sizing: border-box; }
-  #svg svg { width: 100%; height: 100%; display: block; }
+  .panel { border: 1px solid #ddd; border-radius: 10px; padding: 10px; }
+  #gl, #svg { height: 420px; background:#fff; }
   button { padding: 8px 12px; border:1px solid #ccc; border-radius:8px; background:#fff; cursor:pointer; }
 </style>
 </head>
@@ -157,8 +156,6 @@
     camera.top = frustumSize / 2;
     camera.bottom = -frustumSize / 2;
     camera.updateProjectionMatrix();
-    
-    console.log('Panel size:', panelWidth, panelHeight);
   }
   
   // 初期化時に一度だけリサイズ
