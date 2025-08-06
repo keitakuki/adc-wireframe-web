@@ -22,6 +22,7 @@ export function generateSVG(scene, camera, group) {
     
     // 各ボックスのエッジをSVGパスとして描画
     let lineCount = 0;
+    let visibleBoxCount = 0;
     group.children.forEach((box, boxIndex) => {
       // ボックスの境界ボックスを計算
       const boxBoundingBox = new THREE.Box3();
