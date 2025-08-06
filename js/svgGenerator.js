@@ -1,20 +1,76 @@
 import * as THREE from 'https://unpkg.com/three@0.160.0?module';
 
+// 現在のパラメータを取得する関数
+function getCurrentParameters() {
+  const elements = {
+    cameraX: document.getElementById('cameraX'),
+    cameraY: document.getElementById('cameraY'),
+    cameraZ: document.getElementById('cameraZ'),
+    frustumSize: document.getElementById('frustumSize'),
+    boxSize: document.getElementById('boxSize'),
+    rotationX: document.getElementById('rotationX'),
+    rotationY: document.getElementById('rotationY'),
+    rotationZ: document.getElementById('rotationZ'),
+    noiseSizeEnabled: document.getElementById('noiseSizeEnabled'),
+    noiseSizeFreq: document.getElementById('noiseSizeFreq'),
+    noiseSizeAmp: document.getElementById('noiseSizeAmp'),
+    noiseSizeOffset: document.getElementById('noiseSizeOffset'),
+    noiseRotationEnabled: document.getElementById('noiseRotationEnabled'),
+    noiseRotationFreq: document.getElementById('noiseRotationFreq'),
+    noiseRotationAmp: document.getElementById('noiseRotationAmp'),
+    noiseRotationOffset: document.getElementById('noiseRotationOffset')
+  };
+  
+  return {
+    camera: {
+      x: parseFloat(elements.cameraX?.value) || 10,
+      y: parseFloat(elements.cameraY?.value) || 10,
+      z: parseFloat(elements.cameraZ?.value) || -10,
+      frustumSize: parseFloat(elements.frustumSize?.value) || 12
+    },
+    geometry: {
+      boxSize: parseFloat(elements.boxSize?.value) || 1,
+      rotationX: parseFloat(elements.rotationX?.value) || 0,
+      rotationY: parseFloat(elements.rotationY?.value) || 0,
+      rotationZ: parseFloat(elements.rotationZ?.value) || 0
+    },
+    noise: {
+      size: {
+        enabled: elements.noiseSizeEnabled?.checked || false,
+        freq: parseFloat(elements.noiseSizeFreq?.value) || 1,
+        amp: parseFloat(elements.noiseSizeAmp?.value) || 0.1,
+        offset: parseFloat(elements.noiseSizeOffset?.value) || 0
+      },
+      rotation: {
+        enabled: elements.noiseRotationEnabled?.checked || false,
+        freq: parseFloat(elements.noiseRotationFreq?.value) || 1,
+        amp: parseFloat(elements.noiseRotationAmp?.value) || 0.1,
+        offset: parseFloat(elements.noiseRotationOffset?.value) || 0
+      }
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0'
+  };
+}
+
 // SVG生成関数
 export function generateSVG(scene, camera, group) {
   try {
     console.log('generateSVG呼び出し:', { scene, camera, group });
     
-    // 単一パネルのサイズ計算を使用
-    const panelElement = document.querySelector('.panel');
-    if (!panelElement) {
-      throw new Error('パネル要素が見つかりません');
+    // ビューアーのサイズ計算を使用
+    const glElement = document.getElementById('gl');
+    if (!glElement) {
+      throw new Error('GL要素が見つかりません');
     }
     
-    const panelWidth = panelElement.clientWidth - 20; // padding分を引く
-    const panelHeight = 420;
+    const panelWidth = glElement.clientWidth;
+    const panelHeight = glElement.clientHeight;
     
     console.log('パネルサイズ:', { panelWidth, panelHeight });
+    
+    // パラメータを取得
+    const params = getCurrentParameters();
     
     // シーンからSVGを生成
     let svgContent = `<svg width="${panelWidth}" height="${panelHeight}" xmlns="http://www.w3.org/2000/svg">`;
@@ -75,7 +131,32 @@ export function generateSVG(scene, camera, group) {
       }
     });
     
+    // パラメータを文字オブジェクトとして追加
+    const textX = 10;
+    const textY = panelHeight - 10;
+    const fontSize = 12;
+    const lineHeight = 16;
+    
+    // 背景の白い四角形
+    svgContent += `<rect x="${textX - 5}" y="${textY - 120}" width="300" height="110" fill="white" stroke="black" stroke-width="0.5" opacity="0.9"/>`;
+    
+    // パラメータテキスト
+    const paramTexts = [
+      `Camera: X=${params.camera.x}, Y=${params.camera.y}, Z=${params.camera.z}`,
+      `View: ${params.camera.frustumSize} | Box: ${params.geometry.boxSize}`,
+      `Rotation: X=${params.geometry.rotationX}°, Y=${params.geometry.rotationY}°, Z=${params.geometry.rotationZ}°`,
+      `Size Noise: ${params.noise.size.enabled ? 'ON' : 'OFF'} (F:${params.noise.size.freq}, A:${params.noise.size.amp})`,
+      `Rotation Noise: ${params.noise.rotation.enabled ? 'ON' : 'OFF'} (F:${params.noise.rotation.freq}, A:${params.noise.rotation.amp})`,
+      `Generated: ${new Date(params.timestamp).toLocaleString()}`
+    ];
+    
+    paramTexts.forEach((text, index) => {
+      const y = textY - 100 + (index * lineHeight);
+      svgContent += `<text x="${textX}" y="${y}" font-family="Arial, sans-serif" font-size="${fontSize}" fill="black">${text}</text>`;
+    });
+    
     svgContent += '</svg>';
+    
     console.log('SVG生成完了、ライン数:', lineCount);
     return svgContent;
   } catch (error) {

@@ -19,7 +19,7 @@ export function createCamera() {
     -frustumSize / 2,
     -100, 1000
   );
-  camera.position.set(10, 10, 10);
+  camera.position.set(10, 10, -10);
   camera.lookAt(0, 0, 0);
   return camera;
 }

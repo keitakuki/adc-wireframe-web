@@ -14,7 +14,15 @@ let geometryParams = {
   boxSize: 1,
   rotationX: 0,
   rotationY: 0,
-  rotationZ: 0
+  rotationZ: 0,
+  noiseSizeEnabled: false,
+  noiseSizeFreq: 1,
+  noiseSizeAmp: 0.1,
+  noiseSizeOffset: 0,
+  noiseRotationEnabled: false,
+  noiseRotationFreq: 1,
+  noiseRotationAmp: 0.1,
+  noiseRotationOffset: 0
 };
 
 // グローバルパラメータを公開

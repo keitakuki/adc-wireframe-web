@@ -1,5 +1,10 @@
 import * as THREE from 'https://unpkg.com/three@0.160.0?module';
 
+// シンプルなノイズ関数
+function noise(x, y) {
+  return Math.sin(x * 12.9898 + y * 78.233) * 43758.5453 % 1;
+}
+
 // 立方体ワイヤーフレーム作成
 export function makeBoxEdges(size = 1, rotationX = 0, rotationY = 0, rotationZ = 0) {
   const h = size / 2;
@@ -34,7 +39,15 @@ export function createWireframeGroup(params = {}) {
     boxSize = 1,
     rotationX = 0,
     rotationY = 0,
-    rotationZ = 0
+    rotationZ = 0,
+    noiseSizeEnabled = false,
+    noiseSizeFreq = 1,
+    noiseSizeAmp = 0.1,
+    noiseSizeOffset = 0,
+    noiseRotationEnabled = false,
+    noiseRotationFreq = 1,
+    noiseRotationAmp = 0.1,
+    noiseRotationOffset = 0
   } = params;
   
   const group = new THREE.Group();
@@ -52,9 +65,27 @@ export function createWireframeGroup(params = {}) {
       // z方向にx+yのオフセットを適用（斜めの階段状）
       const offsetZ = offsetX + offsetY;
       
-      const box = makeBoxEdges(boxSize, rotationX, rotationY, rotationZ);
+      // サイズノイズを計算
+      let sizeNoiseValue = 0;
+      if (noiseSizeEnabled) {
+        sizeNoiseValue = noise(offsetX * noiseSizeFreq, offsetY * noiseSizeFreq) * noiseSizeAmp + noiseSizeOffset;
+      }
       
-      // 元の座標をそのまま使用
+      // 回転ノイズを計算
+      let rotationNoiseValue = 0;
+      if (noiseRotationEnabled) {
+        rotationNoiseValue = noise(offsetX * noiseRotationFreq, offsetY * noiseRotationFreq) * noiseRotationAmp + noiseRotationOffset;
+      }
+      
+      // サイズと回転にノイズを適用（座標は変更しない）
+      const finalSize = boxSize + sizeNoiseValue;
+      const finalRotationX = rotationX + rotationNoiseValue * 30;
+      const finalRotationY = rotationY + rotationNoiseValue * 30;
+      const finalRotationZ = rotationZ + rotationNoiseValue * 30;
+      
+      const box = makeBoxEdges(finalSize, finalRotationX, finalRotationY, finalRotationZ);
+      
+      // 元の座標をそのまま使用（ノイズの影響を受けない）
       box.position.set(offsetX, offsetY, offsetZ);
       group.add(box);
     }
@@ -69,13 +100,43 @@ export function updateWireframeGroup(group, params = {}) {
     boxSize = 1,
     rotationX = 0,
     rotationY = 0,
-    rotationZ = 0
+    rotationZ = 0,
+    noiseSizeEnabled = false,
+    noiseSizeFreq = 1,
+    noiseSizeAmp = 0.1,
+    noiseSizeOffset = 0,
+    noiseRotationEnabled = false,
+    noiseRotationFreq = 1,
+    noiseRotationAmp = 0.1,
+    noiseRotationOffset = 0
   } = params;
   
   // 既存の立方体のサイズと回転のみを更新
-  group.children.forEach(box => {
+  group.children.forEach((box, index) => {
+    // 座標を取得（ノイズ計算用）
+    const offsetX = box.position.x;
+    const offsetY = box.position.y;
+    
+    // サイズノイズを計算
+    let sizeNoiseValue = 0;
+    if (noiseSizeEnabled) {
+      sizeNoiseValue = noise(offsetX * noiseSizeFreq, offsetY * noiseSizeFreq) * noiseSizeAmp + noiseSizeOffset;
+    }
+    
+    // 回転ノイズを計算
+    let rotationNoiseValue = 0;
+    if (noiseRotationEnabled) {
+      rotationNoiseValue = noise(offsetX * noiseRotationFreq, offsetY * noiseRotationFreq) * noiseRotationAmp + noiseRotationOffset;
+    }
+    
+    // サイズと回転にノイズを適用
+    const finalSize = boxSize + sizeNoiseValue;
+    const finalRotationX = rotationX + rotationNoiseValue * 30;
+    const finalRotationY = rotationY + rotationNoiseValue * 30;
+    const finalRotationZ = rotationZ + rotationNoiseValue * 30;
+    
     // サイズを更新
-    const h = boxSize / 2;
+    const h = finalSize / 2;
     const V = [
       new THREE.Vector3(-h, -h, -h), new THREE.Vector3( h, -h, -h),
       new THREE.Vector3(-h,  h, -h), new THREE.Vector3( h,  h, -h),
@@ -96,9 +157,9 @@ export function updateWireframeGroup(group, params = {}) {
     
     // 回転を更新
     box.rotation.set(
-      rotationX * Math.PI / 180,
-      rotationY * Math.PI / 180,
-      rotationZ * Math.PI / 180
+      finalRotationX * Math.PI / 180,
+      finalRotationY * Math.PI / 180,
+      finalRotationZ * Math.PI / 180
     );
   });
 } 

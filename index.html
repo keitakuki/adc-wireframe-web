@@ -6,9 +6,13 @@
 <title>Wireframe → SVG (Ortho, Minimal)</title>
 <style>
   html, body { height: 100%; margin: 0; background:#fff; font-family: system-ui, sans-serif; }
-  #wrap { max-width: 960px; margin: 24px auto; padding: 12px; }
+  #wrap { display: flex; height: 100vh; padding: 12px; gap: 12px; }
+  .left-panel { flex: 1; max-width: 400px; overflow-y: auto; }
+  .right-panel { flex: 1; display: flex; flex-direction: column; }
   .panel { border: 1px solid #ddd; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
-  #gl { height: 420px; background:#fff; }
+  #gl { width: 400px; height: 400px; background:#fff; }
+  .viewer-container { display: flex; flex-direction: column; align-items: center; }
+  .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; width: 400px; }
   button { padding: 8px 12px; border:1px solid #ccc; border-radius:8px; background:#fff; cursor:pointer; }
   .params { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .param-group { display: flex; flex-direction: column; }
@@ -20,14 +24,16 @@
 </head>
 <body>
 <div id="wrap">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-    <h1 style="font-size:18px; margin:0;">Wireframe → SVG (Ortho, Minimal)</h1>
-    <button id="saveBtn">Save SVG</button>
-  </div>
+  <div class="left-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h1 style="font-size:18px; margin:0;">Wireframe → SVG (Ortho, Minimal)</h1>
+    </div>
 
   <div class="panel">
-    <div>WebGL (操作用)</div>
-    <div id="gl"></div>
+    <div style="margin-bottom:10px; font-weight:bold;">リセット</div>
+    <div style="text-align: center;">
+      <button id="resetBtn" style="padding: 12px 24px; font-size: 14px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 8px; cursor: pointer;">デフォルトに戻す</button>
+    </div>
   </div>
 
   <div class="panel">
@@ -47,9 +53,9 @@
       </div>
       <div class="param-group">
         <label>Z座標</label>
-        <input type="number" id="cameraZ" value="10" step="0.1" min="-50" max="50">
-        <input type="range" id="cameraZSlider" min="-50" max="50" step="0.1" value="10">
-        <div class="param-value" id="cameraZValue">10.00</div>
+        <input type="number" id="cameraZ" value="-10" step="0.1" min="-50" max="50">
+        <input type="range" id="cameraZSlider" min="-50" max="50" step="0.1" value="-10">
+        <div class="param-value" id="cameraZValue">-10.00</div>
       </div>
       <div class="param-group">
         <label>表示範囲</label>
@@ -90,7 +96,75 @@
     </div>
   </div>
 
+  <div class="panel">
+    <div style="margin-bottom:10px; font-weight:bold;">サイズノイズ</div>
+    <div class="params">
+      <div class="param-group">
+        <label>サイズノイズ有効</label>
+        <input type="checkbox" id="noiseSizeEnabled">
+      </div>
+      <div class="param-group">
+        <label>サイズノイズ周波数</label>
+        <input type="number" id="noiseSizeFreq" value="1" step="0.01" min="0.01" max="2">
+        <input type="range" id="noiseSizeFreqSlider" min="0.01" max="2" step="0.01" value="1">
+        <div class="param-value" id="noiseSizeFreqValue">1.00</div>
+      </div>
+      <div class="param-group">
+        <label>サイズノイズ振幅</label>
+        <input type="number" id="noiseSizeAmp" value="0.1" step="0.1" min="0" max="2">
+        <input type="range" id="noiseSizeAmpSlider" min="0" max="2" step="0.1" value="0.1">
+        <div class="param-value" id="noiseSizeAmpValue">0.10</div>
+      </div>
+      <div class="param-group">
+        <label>サイズノイズオフセット</label>
+        <input type="number" id="noiseSizeOffset" value="0" step="0.1" min="-10" max="10">
+        <input type="range" id="noiseSizeOffsetSlider" min="-10" max="10" step="0.1" value="0">
+        <div class="param-value" id="noiseSizeOffsetValue">0.00</div>
+      </div>
+    </div>
+  </div>
 
+  <div class="panel">
+    <div style="margin-bottom:10px; font-weight:bold;">回転ノイズ</div>
+    <div class="params">
+      <div class="param-group">
+        <label>回転ノイズ有効</label>
+        <input type="checkbox" id="noiseRotationEnabled">
+      </div>
+      <div class="param-group">
+        <label>回転ノイズ周波数</label>
+        <input type="number" id="noiseRotationFreq" value="1" step="0.01" min="0.01" max="2">
+        <input type="range" id="noiseRotationFreqSlider" min="0.01" max="2" step="0.01" value="1">
+        <div class="param-value" id="noiseRotationFreqValue">1.00</div>
+      </div>
+      <div class="param-group">
+        <label>回転ノイズ振幅</label>
+        <input type="number" id="noiseRotationAmp" value="0.1" step="0.1" min="0" max="2">
+        <input type="range" id="noiseRotationAmpSlider" min="0" max="2" step="0.1" value="0.1">
+        <div class="param-value" id="noiseRotationAmpValue">0.10</div>
+      </div>
+      <div class="param-group">
+        <label>回転ノイズオフセット</label>
+        <input type="number" id="noiseRotationOffset" value="0" step="0.1" min="-10" max="10">
+        <input type="range" id="noiseRotationOffsetSlider" min="-10" max="10" step="0.1" value="0">
+        <div class="param-value" id="noiseRotationOffsetValue">0.00</div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="right-panel">
+    <div class="viewer-container">
+      <div class="viewer-header">
+        <h2 style="font-size:16px; margin:0;">3D Viewer</h2>
+        <button id="saveBtn">Save SVG</button>
+      </div>
+      <div class="panel">
+        <div id="gl"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="js/main.js"></script>
