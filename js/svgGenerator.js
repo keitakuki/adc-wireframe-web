@@ -20,15 +20,8 @@ export function generateSVG(scene, camera, group) {
     let svgContent = `<svg width="${panelWidth}" height="${panelHeight}" xmlns="http://www.w3.org/2000/svg">`;
     svgContent += `<rect width="100%" height="100%" fill="white"/>`;
     
-    // カメラの視錐台を取得
-    const frustum = new THREE.Frustum();
-    const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    frustum.setFromProjectionMatrix(matrix);
-    
     // 各ボックスのエッジをSVGパスとして描画
     let lineCount = 0;
-    let visibleBoxCount = 0;
-    
     group.children.forEach((box, boxIndex) => {
       // ボックスの境界ボックスを計算
       const boxBoundingBox = new THREE.Box3();
@@ -36,6 +29,10 @@ export function generateSVG(scene, camera, group) {
       boxBoundingBox.setFromObject(box);
       
       // カメラの視錐台内にあるかチェック
+      const frustum = new THREE.Frustum();
+      const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      frustum.setFromProjectionMatrix(matrix);
+      
       if (frustum.intersectsBox(boxBoundingBox)) {
         visibleBoxCount++;
         
@@ -78,7 +75,7 @@ export function generateSVG(scene, camera, group) {
     });
     
     svgContent += '</svg>';
-    console.log('SVG生成完了、表示ボックス数:', visibleBoxCount, 'ライン数:', lineCount);
+    console.log('SVG生成完了、ライン数:', lineCount);
     return svgContent;
   } catch (error) {
     console.error('SVG生成エラー:', error);
@@ -87,10 +84,10 @@ export function generateSVG(scene, camera, group) {
 }
 
 // SVGファイル保存関数
-export function saveSVG(svgContent) {
+export function saveSVG(svgContent, filename = 'wireframe.svg') {
   const blob = new Blob([svgContent], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement('a'), { href: url, download: 'wireframe.svg' });
+  const a = Object.assign(document.createElement('a'), { href: url, download: filename });
   document.body.appendChild(a);
   a.click();
   a.remove();
