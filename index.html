@@ -59,6 +59,38 @@
       </div>
     </div>
   </div>
+
+  <div class="panel">
+    <div style="margin-bottom:10px; font-weight:bold;">ジオメトリパラメータ</div>
+    <div class="params">
+      <div class="param-group">
+        <label>立方体サイズ</label>
+        <input type="number" id="boxSize" value="1" step="0.1" min="0.1" max="5">
+        <input type="range" id="boxSizeSlider" min="0.1" max="5" step="0.1" value="1">
+        <div class="param-value" id="boxSizeValue">1.00</div>
+      </div>
+      <div class="param-group">
+        <label>回転X</label>
+        <input type="number" id="rotationX" value="0" step="1" min="0" max="360">
+        <input type="range" id="rotationXSlider" min="0" max="360" step="1" value="0">
+        <div class="param-value" id="rotationXValue">0.00</div>
+      </div>
+      <div class="param-group">
+        <label>回転Y</label>
+        <input type="number" id="rotationY" value="0" step="1" min="0" max="360">
+        <input type="range" id="rotationYSlider" min="0" max="360" step="1" value="0">
+        <div class="param-value" id="rotationYValue">0.00</div>
+      </div>
+      <div class="param-group">
+        <label>回転Z</label>
+        <input type="number" id="rotationZ" value="0" step="1" min="0" max="360">
+        <input type="range" id="rotationZSlider" min="0" max="360" step="1" value="0">
+        <div class="param-value" id="rotationZValue">0.00</div>
+      </div>
+    </div>
+  </div>
+
+
 </div>
 
 <script type="module" src="js/main.js"></script>

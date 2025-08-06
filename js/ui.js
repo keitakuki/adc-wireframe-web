@@ -4,9 +4,12 @@ import { saveSVG } from './svgGenerator.js';
 // グローバル変数
 let camera, controls;
 let elements = {};
+let updateGeometryFunc;
 
 // UI初期化
-export function initializeUI(generateSVGFunc) {
+export function initializeUI(generateSVGFunc, updateGeometryCallback) {
+  updateGeometryFunc = updateGeometryCallback;
+  
   // DOM要素を取得
   elements = {
     cameraX: document.getElementById('cameraX'),
@@ -20,7 +23,20 @@ export function initializeUI(generateSVGFunc) {
     cameraZValue: document.getElementById('cameraZValue'),
     frustumSize: document.getElementById('frustumSize'),
     frustumSizeSlider: document.getElementById('frustumSizeSlider'),
-    frustumSizeValue: document.getElementById('frustumSizeValue')
+    frustumSizeValue: document.getElementById('frustumSizeValue'),
+    // ジオメトリパラメータ
+    boxSize: document.getElementById('boxSize'),
+    boxSizeSlider: document.getElementById('boxSizeSlider'),
+    boxSizeValue: document.getElementById('boxSizeValue'),
+    rotationX: document.getElementById('rotationX'),
+    rotationXSlider: document.getElementById('rotationXSlider'),
+    rotationXValue: document.getElementById('rotationXValue'),
+    rotationY: document.getElementById('rotationY'),
+    rotationYSlider: document.getElementById('rotationYSlider'),
+    rotationYValue: document.getElementById('rotationYValue'),
+    rotationZ: document.getElementById('rotationZ'),
+    rotationZSlider: document.getElementById('rotationZSlider'),
+    rotationZValue: document.getElementById('rotationZValue')
   };
 
   // DOM要素の存在チェック
@@ -54,6 +70,7 @@ export function initializeUI(generateSVGFunc) {
 
   // イベントハンドラー設定
   setupEventHandlers();
+  setupGeometryEventHandlers();
 }
 
 // イベントハンドラー設定
@@ -86,6 +103,40 @@ function setupEventHandlers() {
       }
     });
   });
+}
+
+// ジオメトリイベントハンドラー設定
+function setupGeometryEventHandlers() {
+  // ジオメトリパラメータのイベント
+  const geometryInputs = ['boxSize', 'rotationX', 'rotationY', 'rotationZ'];
+  geometryInputs.forEach(inputId => {
+    const input = elements[inputId];
+    const slider = elements[inputId + 'Slider'];
+    const valueDisplay = elements[inputId + 'Value'];
+    
+    // 数値入力のイベント
+    input.addEventListener('input', () => {
+      const value = parseFloat(input.value) || 0;
+      updateSliderAndDisplay(inputId, value);
+      updateGeometry();
+    });
+    
+    // スライダーのイベント
+    slider.addEventListener('input', () => {
+      const value = parseFloat(slider.value) || 0;
+      updateInputAndDisplay(inputId, value);
+      updateGeometry();
+    });
+    
+    // Enterキーで確定
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        input.blur();
+      }
+    });
+  });
+  
+
 }
 
 // スライダーと値表示を更新
@@ -130,6 +181,27 @@ function updateCamera() {
   if (controls) {
     controls.update();
   }
+}
+
+// ジオメトリを更新
+function updateGeometry() {
+  if (!updateGeometryFunc) return;
+  
+  // パラメータを取得
+  const params = {
+    boxSize: parseFloat(elements.boxSize.value) || 1,
+    rotationX: parseFloat(elements.rotationX.value) || 0,
+    rotationY: parseFloat(elements.rotationY.value) || 0,
+    rotationZ: parseFloat(elements.rotationZ.value) || 0
+  };
+  
+  // グローバルパラメータを更新
+  if (window.geometryParams) {
+    Object.assign(window.geometryParams, params);
+  }
+  
+  // ジオメトリ更新関数を呼び出し
+  updateGeometryFunc();
 }
 
 // カメラのフラスタムを更新
